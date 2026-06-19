@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Viblend — Party Music & Karaoke</title>
+  <meta name="description" content="Host a party. Guests join via code. Music blends everyone's taste. Karaoke through any phone.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/css/main.css">
+  <meta name="theme-color" content="#0F0E1A">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+  <div id="app-container">
+    <div id="loading-overlay" class="loading-overlay">
+      <div class="spinner"></div>
+      <div class="loading-text">Loading Viblend...</div>
+    </div>
+
+    <div id="offline-banner" class="offline-banner" style="display:none">
+      <span>You're offline — reconnecting...</span>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <div class="screen" id="landing-screen">
+      <div class="landing-content">
+        <div class="logo"><span class="logo-white">Vibl</span><span class="logo-violet">end</span></div>
+        <div class="tagline">Checking your session...</div>
+      </div>
+    </div>
+
+    <div class="screen" id="home-screen">
+      <div class="home-header">
+        <div class="user-info" id="home-user-info">
+          <div class="user-avatar" id="home-avatar"></div>
+          <div class="user-name" id="home-name">Guest</div>
+        </div>
+      </div>
+      <div class="home-actions">
+        <button class="btn btn-primary btn-large" onclick="window.RoomManager.createRoom()">Create Party</button>
+        <button class="btn btn-secondary btn-large" onclick="window.UI.showJoinModal()">Join Party</button>
+      </div>
+      <div class="recent-rooms-section" id="recent-rooms-section" style="display:none">
+        <div class="section-title">Recent Parties</div>
+        <div id="recent-rooms-list"></div>
+      </div>
+      <div class="home-footer">
+        <p class="text-tertiary">Your voice is never stored. Audio is peer-to-peer only.</p>
+        <button class="btn btn-text" onclick="window.Auth.logout()">Logout</button>
+      </div>
+    </div>
+
+    <div class="screen" id="waiting-room-screen">
+      <div class="waiting-header">
+        <div class="room-label">Room Code</div>
+        <div class="room-code" id="room-code-display">------</div>
+      </div>
+      <div class="qr-container" id="qr-container"></div>
+      <div class="members-section">
+        <div class="section-title">Members</div>
+        <div class="member-list" id="member-list"></div>
+      </div>
+      <div class="host-controls" id="host-controls" style="display:none">
+        <div class="section-title">Select Vibe</div>
+        <div class="vibe-grid" id="vibe-grid">
+          <div class="vibe-tile" data-vibe="hype" onclick="window.UI.selectVibe('hype')"><span class="vibe-emoji">🔥</span><span class="vibe-label">Hype</span></div>
+          <div class="vibe-tile" data-vibe="chill" onclick="window.UI.selectVibe('chill')"><span class="vibe-emoji">🌊</span><span class="vibe-label">Chill</span></div>
+          <div class="vibe-tile" data-vibe="bollywood" onclick="window.UI.selectVibe('bollywood')"><span class="vibe-emoji">🎬</span><span class="vibe-label">Bollywood</span></div>
+          <div class="vibe-tile" data-vibe="nostalgia" onclick="window.UI.selectVibe('nostalgia')"><span class="vibe-emoji">📼</span><span class="vibe-label">Nostalgia</span></div>
+          <div class="vibe-tile" data-vibe="rnb" onclick="window.UI.selectVibe('rnb')"><span class="vibe-emoji">🎷</span><span class="vibe-label">R&B</span></div>
+          <div class="vibe-tile" data-vibe="indie" onclick="window.UI.selectVibe('indie')"><span class="vibe-emoji">🌿</span><span class="vibe-label">Indie</span></div>
+        </div>
+        <div class="coverage-section">
+          <div class="coverage-label-row"><span class="coverage-label">Crowd Coverage</span><span class="coverage-value" id="coverage-value">75%</span></div>
+          <div class="coverage-desc" id="coverage-desc">most of the room knows this</div>
+          <input type="range" class="slider" id="coverage-slider" min="10" max="100" step="5" value="75" oninput="window.UI.onCoverageSliderChange(this.value)">
+          <div class="coverage-presets">
+            <button class="preset-btn" onclick="window.UI.setCoveragePreset(25)">DJ Flex</button>
+            <button class="preset-btn active" onclick="window.UI.setCoveragePreset(75)">Crowd Fave</button>
+            <button class="preset-btn" onclick="window.UI.setCoveragePreset(100)">Everyone Knows</button>
+          </div>
+        </div>
+        <button class="btn btn-primary btn-large" onclick="window.RoomManager.startParty()">Start Party</button>
+      </div>
+      <div class="guest-waiting" id="guest-waiting" style="display:none">
+        <div class="waiting-text">Waiting for host to start...</div>
+        <div class="spinner-small"></div>
+      </div>
+    </div>
+
+    <div class="screen" id="now-playing-screen">
+      <div class="np-header">
+        <button class="btn btn-icon" onclick="window.UI.showScreen('home-screen')">←</button>
+        <div class="np-room-label">Viblend Party</div>
+      </div>
+      <div class="np-album-art" id="np-album-art"><div class="album-art-placeholder">🎵</div></div>
+      <div class="np-song-info">
+        <div class="np-title" id="np-title">Select a song</div>
+        <div class="np-artist" id="np-artist">from the queue</div>
+      </div>
+      <div class="np-coverage-bar-container" id="np-coverage-container">
+        <div class="np-coverage-label" id="np-coverage-label">0% of the room knows this</div>
+        <div class="np-coverage-track"><div class="np-coverage-fill" id="np-coverage-fill" style="width:0%"></div></div>
+      </div>
+      <div class="np-progress-section">
+        <div class="np-progress-bar-wrapper"><input type="range" class="slider np-progress" id="np-progress" min="0" max="100" value="0" step="0.1" disabled></div>
+        <div class="np-time"><span id="np-current-time">0:00</span><span id="np-total-time">0:00</span></div>
+      </div>
+      <div class="np-controls">
+        <button class="np-btn np-prev" onclick="window.MusicPlayer.previous()">⏮</button>
+        <button class="np-btn np-play" id="np-play-btn" onclick="window.MusicPlayer.togglePlay()">▶</button>
+        <button class="np-btn np-next" onclick="window.MusicPlayer.skip()">⏭</button>
+      </div>
+      <div class="up-next-section">
+        <div class="section-title">Up Next</div>
+        <div class="up-next-list" id="up-next-list"></div>
+      </div>
+      <button class="mic-fab" id="mic-fab" onclick="window.Karaoke.showKaraokePanel()" style="display:none">🎤</button>
+    </div>
+
+    <div class="karaoke-panel" id="karaoke-panel">
+      <div class="karaoke-handle" onclick="window.Karaoke.hideKaraokePanel()"><div class="handle-bar"></div></div>
+      <div class="karaoke-content">
+        <div class="karaoke-title">Karaoke</div>
+        <div class="host-karaoke-view" id="host-karaoke-view" style="display:none">
+          <div class="karaoke-members" id="karaoke-members"></div>
+          <div class="master-controls">
+            <div class="master-slider-row"><span>Master Mic Volume</span><input type="range" class="slider" min="0" max="2" step="0.05" value="1" oninput="window.Karaoke.setMasterMicVolume(this.value)"></div>
+            <div class="master-slider-row"><span>Music Volume</span><input type="range" class="slider" min="0" max="1" step="0.05" value="0.75" oninput="window.Karaoke.setMusicVolume(this.value)"></div>
+          </div>
+        </div>
+        <div class="guest-karaoke-view" id="guest-karaoke-view">
+          <div class="mic-button-container">
+            <button class="mic-button" id="karaoke-mic-btn" onclick="window.Karaoke.toggleMic()">
+              <span class="mic-icon">🎤</span><span class="mic-label" id="mic-label">Tap to sing</span>
+            </button>
+          </div>
+          <div class="audio-meter" id="audio-meter">
+            <div class="meter-bar" style="height:4px"></div><div class="meter-bar" style="height:8px"></div>
+            <div class="meter-bar" style="height:6px"></div><div class="meter-bar" style="height:12px"></div>
+            <div class="meter-bar" style="height:10px"></div><div class="meter-bar" style="height:14px"></div>
+            <div class="meter-bar" style="height:8px"></div><div class="meter-bar" style="height:10px"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="screen" id="recap-screen">
+      <div class="recap-content">
+        <div class="recap-title">Party Over!</div>
+        <div class="recap-stat"><span class="stat-number" id="recap-songs-count">0</span><span class="stat-label">songs played</span></div>
+        <div class="recap-top-songs"><div class="section-title">Top 3 Crowd Favourites</div><div id="recap-top-3"></div></div>
+        <div class="recap-duration"><span class="stat-number" id="recap-duration">0:00</span><span class="stat-label">party duration</span></div>
+        <button class="btn btn-primary btn-large" onclick="window.UI.shareRecap()">Share</button>
+        <button class="btn btn-secondary btn-large" onclick="window.RoomManager.leaveRoom()">Back to Home</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="join-modal" class="modal-overlay" style="display:none" onclick="window.UI.hideJoinModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-title">Join Party</div>
+      <div class="modal-subtitle">Enter the 6-digit room code</div>
+      <div class="code-inputs" id="modal-code-inputs">
+        <input type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+        <input type="text" maxlength="1" inputmode="numeric" autocomplete="off">
+      </div>
+      <button class="btn btn-primary" onclick="window.UI.submitJoinCode()">Join Room</button>
+      <button class="btn btn-text" onclick="window.UI.hideJoinModal()">Cancel</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="/js/supabase.js"></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script type="module" src="/js/ui.js"></script>
+  <script type="module" src="/js/pwa.js"></script>
+  <script type="module" src="/js/room.js"></script>
+  <script type="module" src="/js/taste.js"></script>
+  <script type="module" src="/js/algorithm.js"></script>
+  <script type="module" src="/js/player.js"></script>
+  <script type="module" src="/js/karaoke.js"></script>
+  <script type="module" src="/js/app.js"></script>
+</body>
+</html>

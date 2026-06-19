@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Viblend — Party Music & Karaoke</title>
+  <meta name="description" content="Host a party. Guests join via code. Music blends everyone's taste. Karaoke through any phone.">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/css/main.css">
+  <meta name="theme-color" content="#0F0E1A">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+  <div id="landing-screen" class="screen active">
+    <div class="landing-content">
+      <div class="logo">
+        <span class="logo-white">Vibl</span><span class="logo-violet">end</span>
+      </div>
+      <div class="tagline">The party starts when the music blends.</div>
+      <div class="connect-buttons">
+        <button class="connect-btn spotify-btn" id="btn-spotify" onclick="window.Auth.initSpotifyAuth()">
+          <span class="btn-icon">&#127925;</span>
+          <span>Connect Spotify</span>
+        </button>
+        <button class="connect-btn youtube-btn" id="btn-youtube" onclick="window.Auth.initYouTubeAuth()">
+          <span class="btn-icon">&#9654;</span>
+          <span>Connect YouTube Music</span>
+        </button>
+        <button class="connect-btn apple-btn" id="btn-apple" onclick="window.Auth.initAppleAuth()">
+          <span class="btn-icon">&#127822;</span>
+          <span>Connect Apple Music</span>
+        </button>
+      </div>
+      <div class="landing-footer">
+        <p>Your voice is never stored. Audio is peer-to-peer only.</p>
+      </div>
+    </div>
+  </div>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script type="module" src="/js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (window.Auth && window.Auth.handleOAuthCallback) {
+        window.Auth.handleOAuthCallback();
+      }
+    });
+  </script>
+</body>
+</html>
