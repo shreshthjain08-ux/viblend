@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Karaoke - Sing Together</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #8B5CF6;
+      --primary-dark: #7C3AED;
+      --secondary: #EC4899;
+      --accent: #06B6D4;
+      --bg-dark: #0F172A;
+      --bg-card: #1E293B;
+      --bg-input: #334155;
+      --text: #F1F5F9;
+      --text-dim: #CBD5E1;
+      --success: #10B981;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f3a 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .app-container {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      background: linear-gradient(135deg, var(--bg-dark) 0%, #1a1f3a 100%);
+    }
+
+    /* Animated background */
+    .bg-animation {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%);
+      pointer-events: none;
+    }
+
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      animation: fadeIn 0.3s ease-in;
+    }
+
+    .screen.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* ===== ROOM JOIN SCREEN ===== */
+    .room-join {
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .room-card {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.1) 0%, rgba(236, 72, 153, 0.1) 100%);
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 24px;
+      padding: 40px 30px;
+      max-width: 400px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+      text-align: center;
+    }
+
+    .logo {
+      font-size: 48px;
+      margin-bottom: 20px;
+      animation: bounce 2s ease-in-out infinite;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .room-card h1 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .room-card p {
+      color: var(--text-dim);
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-input);
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      border-radius: 12px;
+      color: var(--text);
+      font-size: 16px;
+      transition: all 0.3s;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+    }
+
+    .button-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 14px 24px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.6);
+    }
+
+    .btn-secondary {
+      background: rgba(139, 92, 246, 0.2);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .btn-secondary:hover {
+      background: rgba(139, 92, 246, 0.3);
+    }
+
+    /* ===== SINGING SCREEN ===== */
+    .singing-screen {
+      padding: 20px;
+      justify-content: space-between;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .room-info {
+      background: rgba(139, 92, 246, 0.2);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      border: 1px solid rgba(139, 92, 246, 0.4);
+    }
+
+    .room-info .code {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .btn-small {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(139, 92, 246, 0.3);
+      border: 1px solid rgba(139, 92, 246, 0.5);
+      color: var(--text);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      transition: all 0.3s;
+    }
+
+    .btn-small:hover {
+      background: rgba(139, 92, 246, 0.5);
+    }
+
+    /* Waveform visualizer */
+    .visualizer-container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .now-playing {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .now-playing h2 {
+      font-size: 24px;
+      margin-bottom: 5px;
+    }
+
+    .now-playing p {
+      color: var(--text-dim);
+      font-size: 14px;
+    }
+
+    canvas#visualizer {
+      width: 100%;
+      max-width: 300px;
+      height: 100px;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    /* Peers display */
+    .peers-section {
+      margin: 20px 0;
+    }
+
+    .peers-label {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      text-transform: uppercase;
+    }
+
+    .peers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+      gap: 10px;
+    }
+
+    .peer-card {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(236, 72, 153, 0.2));
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+      font-size: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .peer-avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+    }
+
+    .peer-name {
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .peer-status {
+      font-size: 10px;
+      color: var(--success);
+    }
+
+    /* Control buttons */
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 0;
+    }
+
+    .control-btn {
+      padding: 16px;
+      border: none;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .control-btn.mic {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(139, 92, 246, 0.1));
+      color: var(--primary);
+      border: 1px solid var(--primary);
+    }
+
+    .control-btn.mic.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      color: white;
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.5);
+    }
+
+    .control-btn.song {
+      background: linear-gradient(135deg, rgba(236, 72, 153, 0.3), rgba(236, 72, 153, 0.1));
+      color: var(--secondary);
+      border: 1px solid var(--secondary);
+    }
+
+    .control-btn.song.active {
+      background: linear-gradient(135deg, var(--secondary), #DB2777);
+      color: white;
+      box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+    }
+
+    /* Mic level indicator */
+    .mic-level {
+      margin: 15px 0;
+    }
+
+    .level-bar-bg {
+      width: 100%;
+      height: 6px;
+      background: rgba(139, 92, 246, 0.2);
+      border-radius: 3px;
+      overflow: hidden;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+
+    .level-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--success), var(--primary), var(--secondary));
+      width: 0%;
+      transition: width 0.1s;
+    }
+
+    /* Status messages */
+    .status-message {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(16, 185, 129, 0.2);
+      border: 1px solid var(--success);
+      color: var(--success);
+      padding: 12px 24px;
+      border-radius: 20px;
+      font-size: 12px;
+      animation: slideUp 0.3s ease-out;
+      z-index: 1000;
+    }
+
+    @keyframes slideUp {
+      from { 
+        transform: translateX(-50%) translateY(20px);
+        opacity: 0;
+      }
+      to { 
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Mobile responsive */
+    @media (max-width: 600px) {
+      .room-card {
+        padding: 30px 20px;
+      }
+
+      .button-group {
+        grid-template-columns: 1fr;
+      }
+
+      canvas#visualizer {
+        height: 80px;
+      }
+
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-animation"></div>
+  
+  <div class="app-container">
+    <!-- ROOM JOIN SCREEN -->
+    <div class="screen room-join active">
+      <div class="room-card">
+        <div class="logo">🎤</div>
+        <h1>Karaoke Party</h1>
+        <p>Sing together in real-time</p>
+        
+        <div class="input-group">
+          <label>Your Name</label>
+          <input type="text" id="yourName" placeholder="Enter your name" maxlength="20">
+        </div>
+
+        <div class="input-group">
+          <label>Room Code</label>
+          <input type="text" id="roomCode" placeholder="Create new or enter code" maxlength="6">
+        </div>
+
+        <div class="button-group">
+          <button class="btn btn-primary" onclick="createRoom()">Create Room</button>
+          <button class="btn btn-secondary" onclick="joinRoom()">Join Room</button>
+        </div>
+
+        <div id="errorMsg" style="color: #EF4444; font-size: 12px; margin-top: 10px; display: none;"></div>
+      </div>
+    </div>
+
+    <!-- SINGING SCREEN -->
+    <div class="screen singing-screen">
+      <div class="header">
+        <div class="room-info">
+          Room: <span class="code" id="displayRoomCode">------</span>
+        </div>
+        <button class="btn-small" onclick="leaveRoom()" title="Leave">↪️</button>
+      </div>
+
+      <div class="visualizer-container">
+        <div class="now-playing">
+          <h2 id="songTitle">♫ Waiting for song...</h2>
+          <p id="songArtist">Select a song to start</p>
+        </div>
+        <canvas id="visualizer"></canvas>
+      </div>
+
+      <div class="peers-section">
+        <div class="peers-label">Connected Singers</div>
+        <div class="peers-grid" id="peersGrid"></div>
+      </div>
+
+      <div class="mic-level">
+        <small style="color: var(--text-dim);">Microphone Level</small>
+        <div class="level-bar-bg">
+          <div class="level-bar" id="levelBar"></div>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="control-btn mic" id="micBtn" onclick="toggleMic()">
+          <span id="micIcon">🎤</span>
+          <span id="micText">Start Singing</span>
+        </button>
+        <button class="control-btn song" id="songBtn" onclick="toggleSong()">
+          <span id="songIcon">▶️</span>
+          <span id="songText">Play Song</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <audio id="localAudio"></audio>
+  <audio id="remoteAudio" autoplay></audio>
+
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <script>
+    let peer = null;
+    let peerId = null;
+    let myName = 'Guest';
+    let roomCode = null;
+    let isHost = false;
+    let localStream = null;
+    let audioContext = null;
+    let analyser = null;
+    let micEnabled = false;
+    let songPlaying = false;
+    let remoteStreams = new Map();
+    let connections = new Map();
+    let oscNode = null;
+    let gainNode = null;
+
+    // Song database
+    const SONGS = [
+      { id: 1, title: "Shape of You", artist: "Ed Sheeran", freq: 220 },
+      { id: 2, title: "Blinding Lights", artist: "The Weeknd", freq: 246.94 },
+      { id: 3, title: "Don't Start Now", artist: "Dua Lipa", freq: 293.66 },
+      { id: 4, title: "Levitating", artist: "Dua Lipa", freq: 329.63 },
+      { id: 5, title: "Bad Habits", artist: "Ed Sheeran", freq: 349.23 },
+    ];
+
+    let currentSong = SONGS[0];
+
+    function showScreen(screenName) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.querySelector('.screen.' + screenName).classList.add('active');
+    }
+
+    function showError(msg) {
+      const errorEl = document.getElementById('errorMsg');
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+      setTimeout(() => errorEl.style.display = 'none', 3000);
+    }
+
+    function showStatus(msg) {
+      const status = document.createElement('div');
+      status.className = 'status-message';
+      status.textContent = msg;
+      document.body.appendChild(status);
+      setTimeout(() => status.remove(), 2000);
+    }
+
+    async function initializePeer() {
+      return new Promise((resolve) => {
+        peer = new Peer('karaoke-' + Date.now() + '-' + Math.random().toString(36).substr(2, 9));
+        peer.on('open', (id) => {
+          peerId = id;
+          console.log('Peer ID:', id);
+          peer.on('connection', handleConnection);
+          peer.on('call', handleCall);
+          resolve();
+        });
+        peer.on('error', (err) => {
+          console.error('Peer error:', err);
+          showError('Connection error: ' + err);
+        });
+      });
+    }
+
+    async function createRoom() {
+      myName = document.getElementById('yourName').value || 'Singer ' + Math.floor(Math.random() * 100);
+      
+      if (!peer) await initializePeer();
+      
+      roomCode = 'ROOM' + Math.random().toString(36).substr(2, 4).toUpperCase();
+      isHost = true;
+      
+      document.getElementById('displayRoomCode').textContent = roomCode;
+      showScreen('singing-screen');
+      showStatus('Room created: ' + roomCode);
+      updatePeersList();
+    }
+
+    async function joinRoom() {
+      const code = document.getElementById('roomCode').value.toUpperCase();
+      if (!code) {
+        showError('Please enter a room code');
+        return;
+      }
+
+      myName = document.getElementById('yourName').value || 'Singer ' + Math.floor(Math.random() * 100);
+      
+      if (!peer) await initializePeer();
+      
+      roomCode = code;
+      isHost = false;
+      
+      document.getElementById('displayRoomCode').textContent = roomCode;
+      showScreen('singing-screen');
+      showStatus('Finding room: ' + roomCode);
+      updatePeersList();
+    }
+
+    function handleConnection(conn) {
+      console.log('Incoming connection from:', conn.peer);
+      connections.set(conn.peer, conn);
+      
+      conn.on('data', (data) => {
+        if (data.type === 'peer-list') {
+          updatePeersList();
+        }
+      });
+      
+      conn.on('close', () => {
+        connections.delete(conn.peer);
+        remoteStreams.delete(conn.peer);
+        updatePeersList();
+      });
+
+      // Send audio call
+      setTimeout(() => {
+        if (localStream) {
+          const call = peer.call(conn.peer, localStream);
+          call.on('stream', (stream) => handleRemoteStream(conn.peer, stream));
+        }
+      }, 200);
+    }
+
+    function handleCall(call) {
+      console.log('Incoming call from:', call.peer);
+      
+      if (localStream) {
+        call.answer(localStream);
+      } else {
+        captureAudio().then(() => {
+          if (localStream) call.answer(localStream);
+        });
+      }
+      
+      call.on('stream', (stream) => handleRemoteStream(call.peer, stream));
+    }
+
+    async function handleRemoteStream(peerId, stream) {
+      console.log('Received remote stream from:', peerId);
+      remoteStreams.set(peerId, stream);
+      
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      // Mix remote audio
+      const source = audioContext.createMediaStreamSource(stream);
+      const destination = audioContext.createMediaStreamAudioDestinationNode();
+      source.connect(destination);
+      
+      const remoteAudio = document.getElementById('remoteAudio');
+      remoteAudio.srcObject = destination.stream;
+      
+      updatePeersList();
+    }
+
+    async function captureAudio() {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ 
+          audio: { 
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: false
+          } 
+        });
+        
+        if (!audioContext) {
+          audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        return true;
+      } catch (err) {
+        showError('Microphone access denied');
+        console.error('Mic error:', err);
+        return false;
+      }
+    }
+
+    async function toggleMic() {
+      if (micEnabled) {
+        stopMic();
+      } else {
+        await startMic();
+      }
+    }
+
+    async function startMic() {
+      if (!localStream) {
+        const ok = await captureAudio();
+        if (!ok) return;
+      }
+
+      // Set up visualizer
+      const source = audioContext.createMediaStreamSource(localStream);
+      analyser = audioContext.createAnalyser();
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      
+      // Broadcast to peers
+      connections.forEach(conn => {
+        const call = peer.call(conn.peer, localStream);
+        call.on('stream', (stream) => handleRemoteStream(conn.peer, stream));
+      });
+
+      micEnabled = true;
+      document.getElementById('micBtn').classList.add('active');
+      document.getElementById('micIcon').textContent = '🎤';
+      document.getElementById('micText').textContent = 'Stop Singing';
+      
+      updateVisualizer();
+      showStatus('Microphone ON');
+    }
+
+    function stopMic() {
+      micEnabled = false;
+      document.getElementById('micBtn').classList.remove('active');
+      document.getElementById('micIcon').textContent = '🎤';
+      document.getElementById('micText').textContent = 'Start Singing';
+      showStatus('Microphone OFF');
+    }
+
+    async function toggleSong() {
+      if (songPlaying) {
+        stopSong();
+      } else {
+        await playSong();
+      }
+    }
+
+    async function playSong() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+
+      // Cycle through songs
+      currentSong = SONGS[Math.floor(Math.random() * SONGS.length)];
+      
+      // Create oscillator for demo
+      oscNode = audioContext.createOscillator();
+      gainNode = audioContext.createGain();
+      
+      oscNode.type = 'sine';
+      oscNode.frequency.value = currentSong.freq;
+      gainNode.gain.value = 0.15;
+      
+      oscNode.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      oscNode.start();
+
+      songPlaying = true;
+      document.getElementById('songBtn').classList.add('active');
+      document.getElementById('songIcon').textContent = '⏸️';
+      document.getElementById('songText').textContent = 'Stop Song';
+      document.getElementById('songTitle').textContent = '♫ ' + currentSong.title;
+      document.getElementById('songArtist').textContent = currentSong.artist;
+      
+      showStatus('Now playing: ' + currentSong.title);
+    }
+
+    function stopSong() {
+      if (oscNode) {
+        oscNode.stop();
+      }
+      
+      songPlaying = false;
+      document.getElementById('songBtn').classList.remove('active');
+      document.getElementById('songIcon').textContent = '▶️';
+      document.getElementById('songText').textContent = 'Play Song';
+      showStatus('Song stopped');
+    }
+
+    function updateVisualizer() {
+      if (!analyser || !micEnabled) return;
+      
+      const canvas = document.getElementById('visualizer');
+      const ctx = canvas.getContext('2d');
+      const dataArray = new Uint8Array(analyser.frequencyBinCount);
+      analyser.getByteFrequencyData(dataArray);
+
+      const width = canvas.width;
+      const height = canvas.height;
+      
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.1)';
+      ctx.fillRect(0, 0, width, height);
+
+      const barWidth = (width / dataArray.length) * 2.5;
+      let x = 0;
+
+      for (let i = 0; i < dataArray.length; i++) {
+        const barHeight = (dataArray[i] / 255) * height;
+        
+        const hue = (i / dataArray.length) * 360;
+        ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
+        ctx.fillRect(x, height - barHeight, barWidth, barHeight);
+        
+        x += barWidth + 1;
+      }
+
+      // Update mic level
+      const avg = dataArray.reduce((a, b) => a + b) / dataArray.length;
+      document.getElementById('levelBar').style.width = (avg / 255) * 100 + '%';
+
+      requestAnimationFrame(updateVisualizer);
+    }
+
+    function updatePeersList() {
+      const grid = document.getElementById('peersGrid');
+      grid.innerHTML = '';
+
+      // Add self
+      const selfCard = document.createElement('div');
+      selfCard.className = 'peer-card';
+      selfCard.innerHTML = `
+        <div class="peer-avatar">${myName.charAt(0).toUpperCase()}</div>
+        <div class="peer-name">${myName}</div>
+        <div class="peer-status" style="color: var(--primary);">You</div>
+      `;
+      grid.appendChild(selfCard);
+
+      // Add remote peers
+      remoteStreams.forEach((stream, peerId) => {
+        const peerCard = document.createElement('div');
+        peerCard.className = 'peer-card';
+        const peerName = 'Singer ' + peerId.substr(0, 5).toUpperCase();
+        peerCard.innerHTML = `
+          <div class="peer-avatar">${peerName.charAt(0)}</div>
+          <div class="peer-name">${peerName}</div>
+          <div class="peer-status">🟢 Live</div>
+        `;
+        grid.appendChild(peerCard);
+      });
+
+      if (remoteStreams.size === 0 && !isHost) {
+        const emptyCard = document.createElement('div');
+        emptyCard.className = 'peer-card';
+        emptyCard.innerHTML = `<div style="color: var(--text-dim); font-size: 11px;">Waiting for host...</div>`;
+        grid.appendChild(emptyCard);
+      }
+    }
+
+    function leaveRoom() {
+      stopMic();
+      stopSong();
+      
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+      }
+      
+      connections.forEach(conn => conn.close());
+      remoteStreams.clear();
+      
+      showScreen('room-join');
+      document.getElementById('roomCode').value = '';
+      document.getElementById('yourName').value = '';
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('App loaded');
+    });
+
+    window.addEventListener('beforeunload', leaveRoom);
+  </script>
+</body>
+</html>
