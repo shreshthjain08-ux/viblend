@@ -873,10 +873,20 @@
 
     // Initialize
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('App loaded');
+      console.log('✅ Karaoke App Loaded');
+      console.log('Room System Ready - Open 2 browsers to test');
     });
 
     window.addEventListener('beforeunload', leaveRoom);
+    
+    // Auto-fill demo name
+    window.addEventListener('load', () => {
+      const nameInput = document.getElementById('yourName');
+      if (nameInput) {
+        nameInput.value = 'Singer ' + Math.floor(Math.random() * 1000);
+      }
+      console.log('Demo mode ready - just click "Create Room"');
+    });
   </script>
 </body>
 </html>
